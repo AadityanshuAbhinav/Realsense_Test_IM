@@ -12,8 +12,8 @@ class IntelPublisher(Node):
         super().__init__('realsense_publisher')
         self.bridge = CvBridge()
         self.rgb_pub = self.create_publisher(Image, '/camera/color/image_raw', 10)
-        self.depth_pub = self.create_publisher(Image, '/camera/depth/image_raw', 10)
         self.camera_info_pub = self.create_publisher(CameraInfo, '/camera/color/camera_info', 10)
+        self.depth_pub = self.create_publisher(Image, '/camera/depth/image_raw', 10)
         self.pipeline = rs.pipeline()
         self.cfg = rs.config()
         self.cfg.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
@@ -37,10 +37,12 @@ class IntelPublisher(Node):
                 self.get_logger().warning("No frames received")
                 continue
             depth_image = np.asanyarray(depth_frame.get_data())
+            # print(depth_image)
             color_image = np.asanyarray(color_frame.get_data())
             
             ros_rgb_image = self.bridge.cv2_to_imgmsg(color_image, "bgr8")
             ros_depth_image = self.bridge.cv2_to_imgmsg(depth_image, "passthrough")
+            # print(ros_rgb_image)
             
             camera_info_msg = CameraInfo()
             camera_info_msg.header.stamp = self.get_clock().now().to_msg()
@@ -55,7 +57,7 @@ class IntelPublisher(Node):
             self.rgb_pub.publish(ros_rgb_image)
             self.depth_pub.publish(ros_depth_image)
             self.camera_info_pub.publish(camera_info_msg)
-            print(camera_info_msg.k)
+            # print(camera_info_msg.k)
             self.get_logger().info("Published images and camera info ")
 
         # try:
